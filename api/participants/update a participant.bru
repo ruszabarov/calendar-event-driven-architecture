@@ -1,0 +1,18 @@
+meta {
+  name: update a participant
+  type: http
+  seq: 4
+}
+
+put {
+  url: {{BASE_URL}}/participants/50d3d810-0f69-4c04-b603-bce5ef630449
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "New name",
+    "email": "rxz466@case.edu"
+  }
+}

@@ -1,0 +1,19 @@
+meta {
+  name: update a calendar
+  type: http
+  seq: 3
+}
+
+put {
+  url: {{BASE_URL}}/calendars/ee143b10-7287-46f0-9dbc-428769cb776a
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "new title!",
+    "details": "new description!",
+    "meetings": []
+  }
+}

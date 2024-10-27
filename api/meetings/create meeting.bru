@@ -1,0 +1,24 @@
+meta {
+  name: create meeting
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/meetings
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Project Kickoff Meeting",
+    "details": "Discussing the roadmap and deliverables for the new project.",
+    "datetime": "2024-10-15T09:30:00Z",
+    "location": "Conference Room 5B",
+    "participants": [],
+    "calendars": [],
+    "attachments": []
+  }
+  
+}

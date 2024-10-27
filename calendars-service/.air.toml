@@ -1,0 +1,12 @@
+[build]
+cmd = "go build -o ./tmp/main ./src" # Command to build the Go app
+bin = "main"                         # Output binary file name
+full_bin = "./tmp/main"              # Full path to the binary
+
+[log]
+level = "debug"              # Log level
+
+[ports]
+# App run configuration
+http_address = ":8080"       # Port to expose
+reload_on_err = true         # Reload if an error occurs

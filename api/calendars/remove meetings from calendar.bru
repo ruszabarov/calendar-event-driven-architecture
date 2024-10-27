@@ -1,0 +1,19 @@
+meta {
+  name: remove meetings from calendar
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{BASE_URL}}/calendars/bd974b83-336e-4d20-a07f-578c83013522/removeMeeting/491d68a0-86b4-4889-8daf-e5156304dfe8
+  body: none
+  auth: none
+}
+
+body:json {
+  {
+    "meetings": [ 
+      "9edfbb08-0092-4047-96bf-653457d938d8"
+    ]
+  }
+}

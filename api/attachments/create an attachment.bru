@@ -1,0 +1,17 @@
+meta {
+  name: create an attachment
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{BASE_URL}}/attachments
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "url": "http://helloworld.com"
+  }
+}

@@ -1,0 +1,151 @@
+{
+  "attachments": [
+    {
+      "id": "cc13c7a5-83f5-46ed-8823-6dcfa3945bfc",
+      "url": "http://someurl.com",
+      "meetings": [
+        {
+          "id": "4212af9b-798f-42e5-a6cc-18da1b507fa6",
+          "title": "some title",
+          "dateTime": null,
+          "location": "some location",
+          "details": "some details",
+          "calendars": [
+            {
+              "id": "5d253359-fb5b-4b18-9d8f-5916c8a8be6a",
+              "title": "some title",
+              "details": "some details",
+              "meetings": [
+                "4212af9b-798f-42e5-a6cc-18da1b507fa6"
+              ]
+            }
+          ],
+          "participants": [
+            {
+              "id": "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9",
+              "name": "Ruslan Zabarov",
+              "email": "rxz455@case.edu"
+            }
+          ],
+          "attachments": [
+            "cc13c7a5-83f5-46ed-8823-6dcfa3945bfc"
+          ]
+        }
+      ]
+    }
+  ],
+  "participants": [
+    {
+      "id": "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9",
+      "name": "Ruslan Zabarov",
+      "email": "rxz455@case.edu"
+    },
+    {
+      "id": "0c0a622e-e534-4a3a-9c56-286b81b9cf43",
+      "name": "Ruslan Zabarov",
+      "email": "rxz"
+    }
+  ],
+  "meetings": [
+    {
+      "id": "4212af9b-798f-42e5-a6cc-18da1b507fa6",
+      "title": "some title",
+      "dateTime": "2025-01-01T15:01:00.000+00:00",
+      "location": "some location",
+      "details": "some details",
+      "calendars": [
+        {
+          "id": "5d253359-fb5b-4b18-9d8f-5916c8a8be6a",
+          "title": "some title",
+          "details": "some details",
+          "meetings": [
+            "4212af9b-798f-42e5-a6cc-18da1b507fa6"
+          ]
+        }
+      ],
+      "participants": [
+        {
+          "id": "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9",
+          "name": "Ruslan Zabarov",
+          "email": "rxz455@case.edu"
+        }
+      ],
+      "attachments": []
+    },
+    {
+      "id": "bdd74931-5780-4c4a-927e-0278e92ea59d",
+      "title": "hello",
+      "dateTime": "2025-01-01T15:01:00.000+00:00",
+      "location": "",
+      "details": "test",
+      "calendars": [],
+      "participants": [
+        "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9"
+      ],
+      "attachments": []
+    },
+    {
+      "id": "7314033d-120a-4623-b751-e80c9e36ddf5",
+      "title": "hello",
+      "dateTime": "2025-01-01T15:01:00.000+00:00",
+      "location": "",
+      "details": "test",
+      "calendars": [
+        {
+          "id": "fdcc1559-6ee4-452c-a054-d4081f15d954",
+          "title": "some title",
+          "details": "some details",
+          "meetings": [
+            "7314033d-120a-4623-b751-e80c9e36ddf5"
+          ]
+        }
+      ],
+      "participants": [
+        "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9"
+      ],
+      "attachments": []
+    }
+  ],
+  "calendars": [
+    {
+      "id": "5d253359-fb5b-4b18-9d8f-5916c8a8be6a",
+      "title": "some title",
+      "details": "some details",
+      "meetings": [
+        {
+          "id": "4212af9b-798f-42e5-a6cc-18da1b507fa6",
+          "title": "some title",
+          "dateTime": "2025-01-01T15:01:00.000+00:00",
+          "location": "some location",
+          "details": "some details",
+          "participants": [
+            {
+              "id": "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9",
+              "name": "Ruslan Zabarov",
+              "email": "rxz455@case.edu"
+            }
+          ],
+          "attachments": []
+        }
+      ]
+    },
+    {
+      "id": "fdcc1559-6ee4-452c-a054-d4081f15d954",
+      "title": "some title",
+      "details": "some details",
+      "meetings": [
+        {
+          "id": "7314033d-120a-4623-b751-e80c9e36ddf5",
+          "title": "hello",
+          "dateTime": "2025-01-01T15:01:00.000+00:00",
+          "location": "",
+          "details": "test",
+          "participants": [
+            "dbb0c6b8-fa7a-4f40-bbae-0f3576fb79f9"
+          ],
+          "attachments": []
+        }
+      ]
+    }
+  ]
+}

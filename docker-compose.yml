@@ -1,0 +1,75 @@
+version: "3"
+services:
+  krakend:
+    image: devopsfaith/krakend:watch
+    container_name: krakend
+    volumes:
+      - ".:/etc/krakend"
+    ports:
+      - "8080:8080"
+    command: [ "run", "-dc", "krakend.json" ]
+    networks:
+      - my-network
+
+  express-server:
+    container_name: express-server
+    build:
+      context: ./express-server
+      dockerfile: Dockerfile
+    volumes:
+      - ./express-server:/app             
+      - ./react-app/build:/app/build      
+    ports:
+      - "3000:3000"
+    networks:
+      - my-network
+
+  calendars-service:
+    build: ./calendars-service/
+    container_name: calendars-service
+    env_file: "./calendars-service/.env"
+    volumes:
+      - ./calendars-service:/app 
+    networks:
+      - my-network
+
+  meetings-service:
+    build: ./meetings-service/
+    container_name: meetings-service
+    env_file: "./meetings-service/.env"
+    volumes:
+      - ./meetings-service:/app
+    networks:
+      - my-network
+
+  participants-service:
+    build: ./participants-service/
+    container_name: participants-service
+    networks:
+      - my-network
+
+  attachments-service:
+    build: ./attachments-service/
+    container_name: attachments-service
+    networks:
+      - my-network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+    ports:
+      - "27017:27017"
+    networks:
+      - my-network
+    volumes:
+      - mongo-data:/data/db
+
+networks:
+  my-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
