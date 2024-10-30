@@ -4,6 +4,7 @@ import uuid
 
 
 class AttachmentBase(BaseModel):
+    meeting_id: str
     url: HttpUrl
 
 
