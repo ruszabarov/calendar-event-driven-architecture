@@ -67,6 +67,29 @@ services:
     volumes:
       - mongo-data:/data/db
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # Default RabbitMQ port
+      - "15672:15672"     # RabbitMQ management console
+    networks:
+      - my-network
+
+  meetings-queue:
+    build:
+      context: ./meetings-queue
+      dockerfile: Dockerfile
+    container_name: meetings-queue
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_QUEUE: commands_queue
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-network
+
+
 networks:
   my-network:
     driver: bridge
