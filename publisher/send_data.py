@@ -5,7 +5,12 @@ import uuid
 import os
 
 # RabbitMQ host
-RABBITMQ_HOST = 'rabbitmq'
+
+# To run it locally:
+RABBITMQ_HOST = 'localhost'
+
+# To run it in Publisher Container:
+#RABBITMQ_HOST = 'rabbitmq'
 
 # Establish connection to RabbitMQ
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
