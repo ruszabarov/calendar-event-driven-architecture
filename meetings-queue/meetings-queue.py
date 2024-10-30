@@ -91,7 +91,7 @@ def main():
     channel = connection.channel()
 
     # Declare the queue
-    channel.queue_declare(queue=RABBITMQ_QUEUE, durable=True)
+    channel.queue_declare(queue=RABBITMQ_QUEUE)
 
     # Start consuming messages
     channel.basic_qos(prefetch_count=1)

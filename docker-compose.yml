@@ -76,6 +76,19 @@ services:
     networks:
       - my-network
 
+  publisher:
+    build:
+      context: ./publisher
+      dockerfile: Dockerfile
+    container_name: publisher
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_QUEUE: meeting_queue
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-network
+
   meetings-queue:
     build:
       context: ./meetings-queue
@@ -83,7 +96,7 @@ services:
     container_name: meetings-queue
     environment:
       RABBITMQ_HOST: rabbitmq
-      RABBITMQ_QUEUE: commands_queue
+      RABBITMQ_QUEUE: meeting_queue
     depends_on:
       - rabbitmq
     networks:

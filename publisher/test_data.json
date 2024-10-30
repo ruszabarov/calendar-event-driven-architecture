@@ -1,0 +1,29 @@
+{
+    "meetings": [
+        {
+            "command": "create",
+            "meeting": {
+                "title": "Project Kicoff",
+                "description": "Initial project meting to discuss goals and milestones.",
+                "datetime": "2024-11-15T9:00:00",
+                "location": "ConferenceRoom A",
+                "participants": [
+                ],
+                "attachments": [
+                ]
+            }
+        }
+    ],
+    "participants": [
+        {
+            "participantId": "456",
+            "name": "Alice Smith"
+        }
+    ],
+    "attachments": [
+        {
+            "attachmentId": "789",
+            "filename": "Agenda.pdf"
+        }
+    ]
+}

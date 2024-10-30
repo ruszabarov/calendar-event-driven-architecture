@@ -9,12 +9,14 @@ COPY wait-for-it.sh /app/
 RUN chmod +x /app/wait-for-it.sh
 
 # Copy the consumer script and requirements.txt
-COPY meetings-queue.py /app/
+COPY update-meetings.py /app/
 COPY requirements.txt /app/
+COPY send_data.py /app/
+COPY test_data.json /app/
 
 # Install the required Python packages
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Set the default command to run the consumer
-CMD ["python", "meetings-queue.py"]
+CMD ["python", "update-meetings.py"]
 
