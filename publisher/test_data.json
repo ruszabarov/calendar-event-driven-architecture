@@ -1,27 +1,25 @@
 {
-    "meetings": [
-        {
-            "title": "Project Kickoff",
-            "description": "Initial project meeting to discuss goals and milestones.",
-            "datetime": "2024-11-15T9:00:00",
-            "location": "Conference Room A",
-            "participants": [
-            ],
-            "attachments": [
-            ]
-        }
-    ],
-    "participants": [
-        {
-            "email": "jane@example.com",
-            "name": "Alice Smith",
-            "meetingId": "123"
-        }
-    ],
-    "attachments": [
-        {
-            "URL": "https://google.com",
-            "meetingId": "123"
-        }
-    ]
+  "meetings": [
+    {
+      "title": "Project Kickoff",
+      "description": "Initial project meeting to discuss goals and milestones.",
+      "datetime": "2024-11-15T9:00:00",
+      "location": "Conference Room A",
+      "participants": [],
+      "attachments": []
+    }
+  ],
+  "participants": [
+    {
+      "email": "jane@example.com",
+      "name": "Alice Smith",
+      "meetingId": "123"
+    }
+  ],
+  "attachments": [
+    {
+      "url": "https://google.com",
+      "meetingId": "123"
+    }
+  ]
 }
