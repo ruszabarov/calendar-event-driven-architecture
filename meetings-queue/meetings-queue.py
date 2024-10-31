@@ -74,7 +74,7 @@ def on_message2(ch, method, properties, body):
         print(f"Received message from {QUEUE2_NAME}: {message}")
 
         # Make a POST request to the specified endpoint with message data
-        response = requests.post(url, json=message)
+        response = requests.get(url, json=message)
 
         # Log response from the endpoint
         if response.status_code == 200:
