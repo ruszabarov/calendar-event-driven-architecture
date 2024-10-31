@@ -1,26 +1,44 @@
 # send_test_messages.py
 import pika
 import json
+import os
 
 # RabbitMQ host
-
-# To run it locally:
-# RABBITMQ_HOST = 'localhost'
-
-# To run it in Publisher Container:
-RABBITMQ_HOST = "localhost"
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 
 # Establish connection to RabbitMQ
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
 channel = connection.channel()
 
-# Declare queues
-channel.queue_declare(queue="meeting_queue")
+# Declare queues with DLQ configurations matching the consumers
+
+# Meeting queue and its DLQ
+channel.queue_declare(
+    queue="meeting_queue",
+    arguments={
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "meeting_queue_dlq",
+    },
+)
+channel.queue_declare(queue="meeting_queue_dlq")
+
+# Participant queue and response queue with DLQ configurations
 channel.queue_declare(queue="participant_queue")
+channel.queue_declare(
+    queue="response_queue",
+    arguments={
+        "x-dead-letter-exchange": "",
+        "x-dead-letter-routing-key": "response_queue_dlq",
+    },
+)
+channel.queue_declare(queue="response_queue_dlq")
+
+# Attachment queue
 channel.queue_declare(queue="attachment_queue")
+# The attachment_queue consumer also publishes to response_queue
 
 
-# New method to publish a create meeting message
+# Function to publish a create meeting message
 def create_meeting(meeting_data):
     meeting_data["command"] = "create"
     channel.basic_publish(
@@ -29,7 +47,7 @@ def create_meeting(meeting_data):
     print("Published create meeting message:", meeting_data)
 
 
-# New method to publish a create participant message
+# Function to publish a create participant message
 def create_participant(participant_data):
     participant_data["command"] = "create"
     channel.basic_publish(
@@ -38,7 +56,7 @@ def create_participant(participant_data):
     print("Published create participant message:", participant_data)
 
 
-# New method to publish a create attachment message
+# Function to publish a create attachment message
 def create_attachment(attachment_data):
     attachment_data["command"] = "create"
     channel.basic_publish(
@@ -67,4 +85,5 @@ def load_and_publish_data(file_path):
         print(f"Invalid JSON format in file {file_path}: {e}")
 
 
-load_and_publish_data("test_data.json")
+if __name__ == "__main__":
+    load_and_publish_data("test_data.json")
