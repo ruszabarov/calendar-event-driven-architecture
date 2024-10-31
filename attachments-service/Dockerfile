@@ -13,6 +13,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the rest of the application code into the container
 COPY . .
 
+ENV RABBITMQ_HOST=rabbitmq
+
 # Expose the port that the app runs on
 EXPOSE 8080
 
