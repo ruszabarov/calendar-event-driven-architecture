@@ -102,6 +102,32 @@ services:
     networks:
       - my-network
 
+  participants-queue:
+    build:
+      context: ./participants-queue
+      dockerfile: Dockerfile
+    container_name: participants-queue
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_QUEUE: participant_queue
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-network
+
+  attachments-queue:
+    build:
+      context: ./attachments-queue
+      dockerfile: Dockerfile
+    container_name: attachments-queue
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_QUEUE: attachments_queue
+    depends_on:
+      - rabbitmq
+    networks:
+      - my-network
+
 
 networks:
   my-network:

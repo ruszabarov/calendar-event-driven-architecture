@@ -1,111 +1,85 @@
-import os
 import pika
-import requests
 import json
+import requests
+import os
+import threading
 
-# Environment variables
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
-RABBITMQ_QUEUE = os.getenv("RABBITMQ_QUEUE", "commands_queue")
+# RabbitMQ host
+RABBITMQ_HOST = os.getenv('RABBITMQ_HOST', 'rabbitmq')
+QUEUE1_NAME = 'meeting_queue'
+QUEUE2_NAME = 'response_queue'
 
-# Microservice endpoint URLs
-MICROSERVICE_CREATE_URL = "http://localhost:5000/create"
-MICROSERVICE_ADD_PARTICIPANT_URL_TEMPLATE = (
-    "http://krakend:3000/meetings/{meetingId}/addParticipant/{participantId}"
-)
+# Endpoint URLs
+ENDPOINT_URL = 'http://krakend:8080/meetings'
+ENDPOINT_URL2 = 'http://krakend:8080//meetings/{meetingId}/addParticipant/{participantId}'
 
-MICROSERVICE_ADD_ATTACHMENT_URL_TEMPLATE = (
-    "http://krakend:3000/meetings/{meetingId}/addAttachment/{attachmentId}"
-)
+# Ensure each consumer gets its own connection and channel
 
-
-def process_message(ch, method, properties, body):
-    print(f"Received message: {body}")
-
-    # Parse the JSON message
+# Callback function for consuming messages from meeting_queue
+def on_message1(ch, method, properties, body):
     try:
+        # Parse message body
         message = json.loads(body)
-    except json.JSONDecodeError as e:
-        print(f"Invalid JSON format: {e}")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
+        print(f"Received message from {QUEUE1_NAME}: {message}")
 
-    # Determine the command type
-    command_type = message.get("command")
-    if command_type == "create":
-        url = MICROSERVICE_CREATE_URL
+        # Make a POST request to the specified endpoint with message data
+        response = requests.post(ENDPOINT_URL, json=message)
+        
+        # Log response from the endpoint
+        if response.status_code == 200:
+            print(f"Successfully processed message from {QUEUE1_NAME}: {message}")
+        else:
+            print(f"Failed to process message from {QUEUE1_NAME}: {message} - Status code: {response.status_code}")
+    
+    except Exception as e:
+        print(f"Error processing message from {QUEUE1_NAME}: {e}")
 
-        try:
-            response = requests.post(url, json=message)
-            response.raise_for_status()
-            print("Successfully processed create command")
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending request to microservice: {e}")
-    elif command_type == "update":
-        # Extract the required parameters for the update URL
-        meeting_id = message.get("meetingId")
-        participant_id = message.get("participantId")
-        attachment_id = message.get("attachmentId")
-
-        # Check if both parameters are provided
-        if not meeting_id:
-            print("Missing 'meetingId' in update message.")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-
-        if not participant_id and not attachment_id:
-            print("Missing either 'participantId' or 'attachmentId' in update message")
-            ch.basic_ack(delivery_tag=method.delivery_tag)
-            return
-
-        url = ""
-
-        if participant_id:
-            # Construct the update URL with parameters
-            url = MICROSERVICE_ADD_PARTICIPANT_URL_TEMPLATE.format(
-                meetingId=meeting_id, participantId=participant_id
-            )
-        elif attachment_id:
-            url = MICROSERVICE_ADD_ATTACHMENT_URL_TEMPLATE.format(
-                meetingId=meeting_id, participantId=participant_id
-            )
-
-        try:
-            response = requests.get(url, json=message)
-            response.raise_for_status()
-            print("Successfully processed update command")
-        except requests.exceptions.RequestException as e:
-            print(f"Error sending request to microservice: {e}")
-
-    else:
-        print(f"Unknown command: {command_type}")
-        ch.basic_ack(delivery_tag=method.delivery_tag)
-        return
-
-    # Acknowledge the message
+    # Acknowledge message
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
+# Callback function for consuming messages from response_queue
+def on_message2(ch, method, properties, body):
+    try:
+        # Parse message body
+        message = json.loads(body)
+        participant_id = message['id']
+        meeting_id = message['meetingId']
+        url = ENDPOINT_URL2.format(meetingId=meeting_id, participantId=participant_id)
 
-def main():
-    # Connect to RabbitMQ
+        print(f"Received message from {QUEUE2_NAME}: {message}")
+
+        # Make a POST request to the specified endpoint with message data
+        response = requests.post(url, json=message)
+        
+        # Log response from the endpoint
+        if response.status_code == 200:
+            print(f"Successfully processed message from {QUEUE2_NAME}: {message}")
+        else:
+            print(f"Failed to process message from {QUEUE2_NAME}: {message} - Status code: {response.status_code}")
+    
+    except Exception as e:
+        print(f"Error processing message from {QUEUE2_NAME}: {e}")
+
+    # Acknowledge message
+    ch.basic_ack(delivery_tag=method.delivery_tag)
+
+# Set up consumer for each queue in separate threads with separate connections
+def start_consumer1():
     connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
     channel = connection.channel()
+    channel.queue_declare(queue=QUEUE1_NAME)
+    channel.basic_consume(queue=QUEUE1_NAME, on_message_callback=on_message1)
+    print(f'Waiting for messages in {QUEUE1_NAME}. To exit, press CTRL+C')
+    channel.start_consuming()
 
-    # Declare the queue
-    channel.queue_declare(queue=RABBITMQ_QUEUE)
+def start_consumer2():
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
+    channel = connection.channel()
+    channel.queue_declare(queue=QUEUE2_NAME)
+    channel.basic_consume(queue=QUEUE2_NAME, on_message_callback=on_message2)
+    print(f'Waiting for messages in {QUEUE2_NAME}. To exit, press CTRL+C')
+    channel.start_consuming()
 
-    # Start consuming messages
-    channel.basic_qos(prefetch_count=1)
-    channel.basic_consume(queue=RABBITMQ_QUEUE, on_message_callback=process_message)
-
-    print("Waiting for messages. To exit, press CTRL+C")
-    try:
-        channel.start_consuming()
-    except KeyboardInterrupt:
-        print("Exiting...")
-        channel.stop_consuming()
-    finally:
-        connection.close()
-
-
-if __name__ == "__main__":
-    main()
+# Start each consumer in a separate thread
+threading.Thread(target=start_consumer1).start()
+threading.Thread(target=start_consumer2).start()
