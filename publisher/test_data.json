@@ -1,6 +1,7 @@
 {
   "meetings": [
     {
+      "ID" : "cc0f210f-21f5-4464-84c5-7eb2bc2782de",
       "title": "Project Kickoff",
       "description": "Initial project meeting to discuss goals and milestones.",
       "datetime": "2024-11-15T9:00:00",
@@ -13,13 +14,13 @@
     {
       "email": "jane@example.com",
       "name": "Alice Smith",
-      "meetingId": "123"
+      "meetingId": "cc0f210f-21f5-4464-84c5-7eb2bc2782de"
     }
   ],
   "attachments": [
     {
       "url": "https://google.com",
-      "meetingId": "123"
+      "meetingId": "cc0f210f-21f5-4464-84c5-7eb2bc2782de"
     }
   ]
 }
