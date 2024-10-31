@@ -28,8 +28,6 @@ channel.queue_declare(
 )
 channel.queue_declare(queue=DLQ_RESPONSE_QUEUE_NAME)
 
-
-# Callback function for consuming messages from participant_queue
 def on_message(ch, method, properties, body):
     try:
         # Parse message body
@@ -45,14 +43,18 @@ def on_message(ch, method, properties, body):
             headers = properties.headers or {}
             headers["x-retries"] = headers.get("x-retries", 0)  # Start with 0 retries
 
-            # Publish the message to the response queue with headers
-            channel.basic_publish(
+            # Include the meetingId in the response data
+            response_data = response.json()
+            response_data["meetingId"] = message.get("meetingId")
+
+            # Publish the modified response with meetingId to the response queue
+            ch.basic_publish(
                 exchange="",
                 routing_key=RESPONSE_QUEUE_NAME,
-                body=json.dumps(message),
+                body=json.dumps(response_data),
                 properties=pika.BasicProperties(headers=headers),
             )
-            print(f"Published message to response queue: {message}")
+            print(f"Published message to response queue: {response_data}")
         else:
             raise Exception(f"Failed with status code: {response.status_code}")
 
@@ -68,7 +70,7 @@ def on_message(ch, method, properties, body):
             headers["x-retries"] = retries + 1
             print(f"Retrying message: {message}, attempt {retries + 1}")
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            channel.basic_publish(
+            ch.basic_publish(
                 exchange="",
                 routing_key=QUEUE_NAME,
                 body=body,
@@ -80,12 +82,15 @@ def on_message(ch, method, properties, body):
                 f"Message sent to {DLQ_RESPONSE_QUEUE_NAME} after {MAX_RETRIES} retries: {message}"
             )
             ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            channel.basic_publish(
-                exchange="", routing_key=DLQ_RESPONSE_QUEUE_NAME, body=body
+            ch.basic_publish(
+                exchange="",
+                routing_key=DLQ_RESPONSE_QUEUE_NAME,
+                body=body
             )
 
     # Acknowledge message if successful
     ch.basic_ack(delivery_tag=method.delivery_tag)
+
 
 
 # Set up consumer on participant_queue
