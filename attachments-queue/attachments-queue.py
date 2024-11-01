@@ -2,6 +2,10 @@ import pika
 import json
 import requests
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 QUEUE_NAME = "attachment_queue"
@@ -27,11 +31,13 @@ channel.queue_declare(queue=DLQ_RESPONSE_QUEUE_NAME)
 def on_message(ch, method, properties, body):
     try:
         message = json.loads(body)
-        print(f"Received message: {message}")
+        logger.info(f"Received message: {message}")
+
         payload = {
             "meetingId": message.get("meetingId"),
-            "url": message.get("file_url") or message.get("url")
+            "url": message.get("url")  # Ensure 'url' exists and is a valid URL
         }
+
         response = requests.post(ENDPOINT_URL, json=payload)
         if response.status_code == 200:
             print(f"Successfully processed message: {message}")
