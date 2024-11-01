@@ -16,9 +16,7 @@ ENDPOINT_URL = "http://krakend:8080/meetings"
 ENDPOINT_URL2 = (
     "http://krakend:8080/meetings/{meetingId}/addParticipant/{participantId}"
 )
-
-# Maximum number of times to retry processing a message before sending it to DLQ
-MAX_RETRIES = 3
+ENDPOINT_URL3 = "http://krakend:8080/meetings/{meetingId}/addAttachment/{attachmentId}"
 
 
 # Callback function for consuming messages from meeting_queue
@@ -41,43 +39,39 @@ def on_message1(ch, method, properties, body):
     except Exception as e:
         print(f"Error processing message from {QUEUE1_NAME}: {e}")
 
-        # Get the current retry count
-        retries = (
-            properties.headers.get("x-retries", 0)
-            if properties and properties.headers
-            else 0
-        )
-
-        if retries < MAX_RETRIES:
-            # Increment retry count and requeue message with updated headers
-            headers = properties.headers or {}
-            headers["x-retries"] = retries + 1
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            ch.basic_publish(
-                exchange="",
-                routing_key=QUEUE1_NAME,
-                body=body,
-                properties=pika.BasicProperties(headers=headers),
-            )
-        else:
-            # Send to DLQ after exceeding retry count
-            print(f"Message sent to {DLQ1_NAME} after {MAX_RETRIES} retries: {message}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            ch.basic_publish(exchange="", routing_key=DLQ1_NAME, body=body)
+        # Send to DLQ after exceeding retry count
+        print(f"Message sent to {DLQ1_NAME}: {message}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        ch.basic_publish(exchange="", routing_key=DLQ1_NAME, body=body)
 
 
 # Callback function for consuming messages from response_queue
+
+
 def on_message2(ch, method, properties, body):
     try:
         # Parse message body
         message = json.loads(body)
-        participant_id = message["id"]
         meeting_id = message["meetingId"]
-        url = ENDPOINT_URL2.format(meetingId=meeting_id, participantId=participant_id)
-
         print(f"Received message from {QUEUE2_NAME}: {message}")
 
-        # Make a POST request to the specified endpoint with message data
+        # Determine which scenario to use based on presence of "url" field
+        if "url" in message:
+            # Scenario 2: Process with ENDPOINT_URL3
+            attachment_id = message[
+                "id"
+            ]  # Assuming "id" is used for attachment in this context
+            url = ENDPOINT_URL3.format(meetingId=meeting_id, attachmentId=attachment_id)
+            print("Processing with ENDPOINT_URL3")
+        else:
+            # Scenario 1: Process with ENDPOINT_URL2
+            participant_id = message["id"]
+            url = ENDPOINT_URL2.format(
+                meetingId=meeting_id, participantId=participant_id
+            )
+            print("Processing with ENDPOINT_URL2")
+
+        # Make a GET request to the specified endpoint with message data
         response = requests.get(url, json=message)
 
         # Log response from the endpoint
@@ -86,33 +80,13 @@ def on_message2(ch, method, properties, body):
             ch.basic_ack(delivery_tag=method.delivery_tag)
         else:
             raise Exception(f"Failed with status code: {response.status_code}")
-
     except Exception as e:
         print(f"Error processing message from {QUEUE2_NAME}: {e}")
 
-        # Get the current retry count
-        retries = (
-            properties.headers.get("x-retries", 0)
-            if properties and properties.headers
-            else 0
-        )
-
-        if retries < MAX_RETRIES:
-            # Increment retry count and requeue message with updated headers
-            headers = properties.headers or {}
-            headers["x-retries"] = retries + 1
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            ch.basic_publish(
-                exchange="",
-                routing_key=QUEUE2_NAME,
-                body=body,
-                properties=pika.BasicProperties(headers=headers),
-            )
-        else:
-            # Send to DLQ after exceeding retry count
-            print(f"Message sent to {DLQ2_NAME} after {MAX_RETRIES} retries: {message}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
-            ch.basic_publish(exchange="", routing_key=DLQ2_NAME, body=body)
+        # Send to DLQ after exceeding retry count
+        print(f"Message sent to {DLQ2_NAME}: {message}")
+        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        ch.basic_publish(exchange="", routing_key=DLQ2_NAME, body=body)
 
 
 # Set up consumer for each queue in separate threads with separate connections
@@ -121,10 +95,6 @@ def start_consumer1():
     channel = connection.channel()
     channel.queue_declare(
         queue=QUEUE1_NAME,
-        arguments={
-            "x-dead-letter-exchange": "",
-            "x-dead-letter-routing-key": DLQ1_NAME,
-        },
     )
     channel.queue_declare(queue=DLQ1_NAME)
     channel.basic_consume(queue=QUEUE1_NAME, on_message_callback=on_message1)
@@ -137,10 +107,6 @@ def start_consumer2():
     channel = connection.channel()
     channel.queue_declare(
         queue=QUEUE2_NAME,
-        arguments={
-            "x-dead-letter-exchange": "",
-            "x-dead-letter-routing-key": DLQ2_NAME,
-        },
     )
     channel.queue_declare(queue=DLQ2_NAME)
     channel.basic_consume(queue=QUEUE2_NAME, on_message_callback=on_message2)

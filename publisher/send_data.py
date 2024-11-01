@@ -15,10 +15,6 @@ channel = connection.channel()
 # Meeting queue and its DLQ
 channel.queue_declare(
     queue="meeting_queue",
-    arguments={
-        "x-dead-letter-exchange": "",
-        "x-dead-letter-routing-key": "meeting_queue_dlq",
-    },
 )
 channel.queue_declare(queue="meeting_queue_dlq")
 
@@ -26,10 +22,6 @@ channel.queue_declare(queue="meeting_queue_dlq")
 channel.queue_declare(queue="participant_queue")
 channel.queue_declare(
     queue="response_queue",
-    arguments={
-        "x-dead-letter-exchange": "",
-        "x-dead-letter-routing-key": "response_queue_dlq",
-    },
 )
 channel.queue_declare(queue="response_queue_dlq")
 
