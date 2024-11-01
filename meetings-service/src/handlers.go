@@ -64,6 +64,13 @@ func CreateMeeting(w http.ResponseWriter, r *http.Request) {
 		meetingSummary.ID = uuid.New().String()
 	}
 
+	if meetingSummary.Participants == nil {
+		meetingSummary.Participants = []string{}
+	}
+	if meetingSummary.Attachments == nil {
+		meetingSummary.Attachments = []string{}
+	}
+
 	collection := database.Collection("meetings")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -11,7 +11,6 @@ DLQ_ATTACHMENT_QUEUE_NAME = "attachment_queue_dlq"
 
 # Endpoint URL
 ENDPOINT_URL = "http://krakend:8080/attachments"
-MAX_RETRIES = 0  # Maximum number of retry attempts
 
 # Establish connection to RabbitMQ
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
@@ -31,10 +30,10 @@ def on_message(ch, method, properties, body):
         message = json.loads(body)
         print(f"Received message: {message}")
 
-        # Extract only necessary attachment information
+        # Extract only necessary attachment information without "id" or "meetingId"
         attachment_data = {
-            "id": message.get("id"),
-            "url": message.get("url"),
+            "url": message.get("url", ""),
+            "meetingId": message.get("meetingId"),
         }
 
         # Make a POST request to the specified endpoint with stripped-down attachment data
@@ -44,7 +43,7 @@ def on_message(ch, method, properties, body):
         if response.status_code == 200:
             print(f"Successfully processed message: {attachment_data}")
 
-            # Include the meetingId in the response data if required
+            # Include the meetingId in the response data for the response queue only
             response_data = response.json()
             response_data["meetingId"] = message.get("meetingId")
 
@@ -60,14 +59,14 @@ def on_message(ch, method, properties, body):
 
     except Exception as e:
         print(f"Error processing message: {e}")
-        #ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        # Move message to DLQ if an error occurs
         ch.basic_publish(exchange="", routing_key=DLQ_ATTACHMENT_QUEUE_NAME, body=body)
 
     # Acknowledge message if successful
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
-# Set up consumer on participant_queue
+# Set up consumer on attachment_queue
 channel.basic_consume(queue=QUEUE_NAME, on_message_callback=on_message)
 
 print("Waiting for messages. To exit, press CTRL+C")
