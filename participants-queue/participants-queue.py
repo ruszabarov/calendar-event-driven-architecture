@@ -30,14 +30,21 @@ def on_message(ch, method, properties, body):
         message = json.loads(body)
         print(f"Received message: {message}")
 
-        # Make a POST request to the specified endpoint with message data
-        response = requests.post(ENDPOINT_URL, json=message)
+        # Extract only necessary participant information
+        participant_data = {
+            "id": message.get("id"),
+            "name": message.get("name"),
+            "email": message.get("email"),
+        }
+
+        # Make a POST request to the specified endpoint with stripped-down participant data
+        response = requests.post(ENDPOINT_URL, json=participant_data)
 
         # Log response and publish to response queue if successful
         if response.status_code == 200:
-            print(f"Successfully processed message: {message}")
+            print(f"Successfully processed message: {participant_data}")
 
-            # Include the meetingId in the response data
+            # Include the meetingId in the response data if required
             response_data = response.json()
             response_data["meetingId"] = message.get("meetingId")
 
@@ -53,8 +60,6 @@ def on_message(ch, method, properties, body):
 
     except Exception as e:
         print(f"Error processing message: {e}")
-
-        print(f"Message sent to {DLQ_PARTICIPANTS_QUEUE_NAME}: {message}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
         ch.basic_publish(
             exchange="", routing_key=DLQ_PARTICIPANTS_QUEUE_NAME, body=body

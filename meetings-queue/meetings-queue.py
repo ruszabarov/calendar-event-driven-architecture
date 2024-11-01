@@ -26,21 +26,26 @@ def on_message1(ch, method, properties, body):
         message = json.loads(body)
         print(f"Received message from {QUEUE1_NAME}: {message}")
 
-        # Make a POST request to the specified endpoint with message data
-        response = requests.post(ENDPOINT_URL, json=message)
+        # Extract only necessary meeting information
+        meeting_data = {
+            "id": message.get("id"),
+            "title": message.get("title"),
+            "location": message.get("location"),
+            "datetime": message.get("datetime"),
+        }
+
+        # Make a POST request to the specified endpoint with stripped-down meeting data
+        response = requests.post(ENDPOINT_URL, json=meeting_data)
 
         # Log response from the endpoint
         if response.status_code == 200:
-            print(f"Successfully processed message from {QUEUE1_NAME}: {message}")
+            print(f"Successfully processed message from {QUEUE1_NAME}: {meeting_data}")
             ch.basic_ack(delivery_tag=method.delivery_tag)
         else:
             raise Exception(f"Failed with status code: {response.status_code}")
 
     except Exception as e:
         print(f"Error processing message from {QUEUE1_NAME}: {e}")
-
-        # Send to DLQ after exceeding retry count
-        print(f"Message sent to {DLQ1_NAME}: {message}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
         ch.basic_publish(exchange="", routing_key=DLQ1_NAME, body=body)
 
