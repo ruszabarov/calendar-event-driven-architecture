@@ -3,7 +3,7 @@ import json
 import requests
 import os
 
-RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "rabbitmq")
+RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 QUEUE_NAME = "attachment_queue"
 RESPONSE_QUEUE_NAME = "attachment_response_queue"
 DLQ_RESPONSE_QUEUE_NAME = "attachment_response_dlq"
@@ -42,8 +42,6 @@ def on_message(ch, method, properties, body):
                 properties=pika.BasicProperties(headers=headers),
             )
             print(f"Published message to response queue: {response_data}")
-        else:
-            raise Exception(f"Failed with status code: {response.status_code}")
     except Exception as e:
         print(f"Error processing message: {e}")
         retries = properties.headers.get("x-retries", 0) if properties.headers else 0
@@ -51,7 +49,6 @@ def on_message(ch, method, properties, body):
             headers = properties.headers or {}
             headers["x-retries"] = retries + 1
             print(f"Retrying message: {message}, attempt {retries + 1}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             ch.basic_publish(
                 exchange="",
                 routing_key=QUEUE_NAME,
@@ -60,7 +57,6 @@ def on_message(ch, method, properties, body):
             )
         else:
             print(f"Message sent to {DLQ_RESPONSE_QUEUE_NAME} after {MAX_RETRIES} retries: {message}")
-            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
             ch.basic_publish(
                 exchange="",
                 routing_key=DLQ_RESPONSE_QUEUE_NAME,
