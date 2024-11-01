@@ -28,7 +28,11 @@ def on_message(ch, method, properties, body):
     try:
         message = json.loads(body)
         print(f"Received message: {message}")
-        response = requests.post(ENDPOINT_URL, json=message)
+        payload = {
+            "meetingId": message.get("meetingId"),
+            "url": message.get("file_url") or message.get("url")
+        }
+        response = requests.post(ENDPOINT_URL, json=payload)
         if response.status_code == 200:
             print(f"Successfully processed message: {message}")
             headers = properties.headers or {}
@@ -39,7 +43,7 @@ def on_message(ch, method, properties, body):
                 exchange="",
                 routing_key=RESPONSE_QUEUE_NAME,
                 body=json.dumps(response_data),
-                properties=pika.BasicProperties(headers=headers),
+                properties=pika.BasicProperties(headers=headers, delivery_mode=2),
             )
             print(f"Published message to response queue: {response_data}")
     except Exception as e:
@@ -53,18 +57,19 @@ def on_message(ch, method, properties, body):
                 exchange="",
                 routing_key=QUEUE_NAME,
                 body=body,
-                properties=pika.BasicProperties(headers=headers),
+                properties=pika.BasicProperties(headers=headers, delivery_mode=2),
             )
         else:
             print(f"Message sent to {DLQ_RESPONSE_QUEUE_NAME} after {MAX_RETRIES} retries: {message}")
             ch.basic_publish(
                 exchange="",
                 routing_key=DLQ_RESPONSE_QUEUE_NAME,
-                body=body
+                body=body,
+                properties=pika.BasicProperties(delivery_mode=2),
             )
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
-channel.basic_consume(queue=QUEUE_NAME, on_message_callback=on_message)
+channel.basic_consume(queue=QUEUE_NAME, on_message_callback=on_message, auto_ack=False)
 
 print("Waiting for messages. To exit, press CTRL+C")
 channel.start_consuming()
