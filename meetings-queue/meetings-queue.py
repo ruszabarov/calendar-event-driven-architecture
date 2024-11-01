@@ -42,7 +42,11 @@ def on_message1(ch, method, properties, body):
         print(f"Error processing message from {QUEUE1_NAME}: {e}")
 
         # Get the current retry count
-        retries = properties.headers.get("x-retries", 0)
+        retries = (
+            properties.headers.get("x-retries", 0)
+            if properties and properties.headers
+            else 0
+        )
 
         if retries < MAX_RETRIES:
             # Increment retry count and requeue message with updated headers
@@ -87,7 +91,11 @@ def on_message2(ch, method, properties, body):
         print(f"Error processing message from {QUEUE2_NAME}: {e}")
 
         # Get the current retry count
-        retries = properties.headers.get("x-retries", 0)
+        retries = (
+            properties.headers.get("x-retries", 0)
+            if properties and properties.headers
+            else 0
+        )
 
         if retries < MAX_RETRIES:
             # Increment retry count and requeue message with updated headers
