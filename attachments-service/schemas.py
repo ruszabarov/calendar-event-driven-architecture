@@ -14,4 +14,11 @@ class Attachment(AttachmentBase):
     id: str
 
     class Config:
-        orm_mode = True  # Use 'from_attributes = True' if using Pydantic V2
+        orm_mode = True
+from pydantic import BaseModel
+
+class AttachmentCreateWithoutId(BaseModel):
+    name: str
+    file_url: str
+
+
