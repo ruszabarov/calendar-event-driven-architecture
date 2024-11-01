@@ -60,7 +60,7 @@ def on_message(ch, method, properties, body):
 
     except Exception as e:
         print(f"Error processing message: {e}")
-        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
+        #ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
         ch.basic_publish(
             exchange="", routing_key=DLQ_PARTICIPANTS_QUEUE_NAME, body=body
         )
