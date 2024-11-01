@@ -10,25 +10,6 @@ RABBITMQ_HOST = os.getenv("RABBITMQ_HOST", "localhost")
 connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
 channel = connection.channel()
 
-# Declare queues with DLQ configurations matching the consumers
-
-# Meeting queue and its DLQ
-channel.queue_declare(
-    queue="meeting_queue",
-)
-channel.queue_declare(queue="meeting_queue_dlq")
-
-# Participant queue and response queue with DLQ configurations
-channel.queue_declare(queue="participant_queue")
-channel.queue_declare(
-    queue="response_queue",
-)
-channel.queue_declare(queue="response_queue_dlq")
-
-# Attachment queue
-channel.queue_declare(queue="attachment_queue")
-# The attachment_queue consumer also publishes to response_queue
-
 
 # Function to publish a create meeting message
 def create_meeting(meeting_data):
@@ -66,10 +47,12 @@ def load_and_publish_data(file_path):
 
                 # Publish each participant in the current meeting
                 for participant in meeting.get("participants", []):
+                    participant["meetingId"] = meeting["id"]
                     create_participant(participant)
 
                 # Publish each attachment in the current meeting
                 for attachment in meeting.get("attachments", []):
+                    attachment["meetingId"] = meeting["id"]
                     create_attachment(attachment)
 
     except FileNotFoundError:
